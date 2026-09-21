@@ -1,0 +1,6 @@
+timestamp,region,glacier_id,ice_melt_index,melting_rate_mm_day,temperature_c,snow_cover_pct,runoff_contribution_mm
+2026-09-21 00:00:00,Himalaya,GL001,0.32,2.1,3.5,68,0.8
+2026-09-21 06:00:00,Himalaya,GL001,0.38,2.5,4.1,64,1.0
+2026-09-21 12:00:00,Himalaya,GL001,0.45,3.0,5.2,59,1.3
+2026-09-21 18:00:00,Himalaya,GL001,0.49,3.4,5.7,55,1.5
+2026-09-21 23:00:00,Himalaya,GL001,0.52,3.8,6.0,51,1.7

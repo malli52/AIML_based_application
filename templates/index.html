@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        AI Rainfall Early Warning & Inundation Prediction System
+    </title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+
+        /* ================================================= */
+        /* MAP */
+        /* ================================================= */
+
+        #riskMap {
+
+            width: 100%;
+            height: 450px;
+
+            border-radius: 12px;
+
+            overflow: hidden;
+
+            margin-top: 15px;
+
+            border: 1px solid #ddd;
+
+        }
+
+
+        .map-info {
+
+            margin-top: 12px;
+
+            padding: 12px;
+
+            background: #f5f5f5;
+
+            border-radius: 8px;
+
+        }
+
+
+        .map-info strong {
+
+            display: inline-block;
+
+            margin-right: 5px;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <!-- ================================================= -->
+    <!-- HEADER -->
+    <!-- ================================================= -->
+
+    <header>
+
+        <h1>
+            AI Rainfall Early Warning & Inundation Prediction System
+        </h1>
+<div class="card">
+    <h2>📍 Select Location</h2>
+
+<select id="locationSelect">
+    <option value="Guntur">Guntur</option>
+    <option value="Vijayawada">Vijayawada</option>
+    <option value="Amaravati">Amaravati</option>
+    <option value="Visakhapatnam">Visakhapatnam</option>
+
+    <option value="Hyderabad">Hyderabad</option>
+    <option value="Chennai">Chennai</option>
+    <option value="Bengaluru">Bengaluru</option>
+    <option value="Mumbai">Mumbai</option>
+    <option value="Delhi">Delhi</option>
+    <option value="Kolkata">Kolkata</option>
+    <option value="Pune">Pune</option>
+    <option value="Ahmedabad">Ahmedabad</option>
+    <option value="Jaipur">Jaipur</option>
+    <option value="Lucknow">Lucknow</option>
+    <option value="Bhopal">Bhopal</option>
+    <option value="Indore">Indore</option>
+    <option value="Nagpur">Nagpur</option>
+    <option value="Patna">Patna</option>
+    <option value="Ranchi">Ranchi</option>
+    <option value="Bhubaneswar">Bhubaneswar</option>
+    <option value="Raipur">Raipur</option>
+    <option value="Chandigarh">Chandigarh</option>
+    <option value="Dehradun">Dehradun</option>
+    <option value="Srinagar">Srinagar</option>
+    <option value="Jammu">Jammu</option>
+    <option value="Kochi">Kochi</option>
+    <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+    <option value="Coimbatore">Coimbatore</option>
+    <option value="Madurai">Madurai</option>
+    <option value="Mysuru">Mysuru</option>
+    <option value="Surat">Surat</option>
+    <option value="Jodhpur">Jodhpur</option>
+    <option value="Varanasi">Varanasi</option>
+    <option value="Agra">Agra</option>
+</select>
+
+    <button onclick="changeLocation()">Check Location</button>
+
+    <p>
+        <strong>Latitude:</strong>
+        <span id="selectedLatitude">16.3067</span>
+    </p>
+
+    <p>
+        <strong>Longitude:</strong>
+        <span id="selectedLongitude">80.4365</span>
+    </p>
+</div>
+        <p>
+            Satellite + Radar + Weather + NWP + River + Terrain
+            + Ice/Glacier Based Prediction
+        </p>
+
+    </header>
+
+
+    <!-- ================================================= -->
+    <!-- FINAL RISK -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>Current Inundation Risk Assessment</h2>
+
+        <div class="risk-box">
+
+            <div>
+                <span>Risk Level</span>
+
+                <strong id="riskLevel">
+                    Loading...
+                </strong>
+            </div>
+
+
+            <div>
+                <span>Inundation Score</span>
+
+                <strong id="riskScore">
+                    --
+                </strong>
+            </div>
+
+
+            <div>
+                <span>Rainfall Score</span>
+
+                <strong id="rainfallScore">
+                    --
+                </strong>
+            </div>
+
+
+            <div>
+                <span>River Risk</span>
+
+                <strong id="riverRisk">
+                    --
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- EARLY WARNING -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>Early Warning</h2>
+
+        <div id="warning"
+             class="warning">
+
+            Loading warning...
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- MAP -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>
+            Flood Risk Location Map
+        </h2>
+
+        <p>
+            Map showing the monitored river location and
+            current inundation risk.
+        </p>
+
+        <div id="riskMap"></div>
+
+        <div class="map-info">
+
+            <p>
+                <strong>River:</strong>
+                <span id="mapRiverName">--</span>
+            </p>
+
+            <p>
+                <strong>Station:</strong>
+                <span id="mapStationId">--</span>
+            </p>
+
+            <p>
+                <strong>Water Level:</strong>
+                <span id="mapWaterLevel">--</span>
+            </p>
+
+            <p>
+                <strong>Risk Level:</strong>
+                <span id="mapRiskLevel">--</span>
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- ML -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>AI / ML Prediction</h2>
+
+        <div class="grid">
+
+            <div>
+
+                <span>ML Prediction</span>
+
+                <strong id="mlPrediction">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>ML Confidence</span>
+
+                <strong id="mlConfidence">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <h3>
+            Prediction Probabilities
+        </h3>
+
+
+        <div id="probabilities">
+            Loading...
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- OBSERVATIONAL WEATHER -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>
+            Observational Weather
+        </h2>
+
+        <div class="grid">
+
+            <div>
+
+                <span>Temperature</span>
+
+                <strong id="temperature">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Humidity</span>
+
+                <strong id="humidity">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Pressure</span>
+
+                <strong id="pressure">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Wind Speed</span>
+
+                <strong id="windSpeed">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Rainfall (1h)</span>
+
+                <strong id="rainfall">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Cloud Cover</span>
+
+                <strong id="cloudCover">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- RADAR -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>
+            Radar Data
+        </h2>
+
+        <div class="grid">
+
+            <div>
+
+                <span>Reflectivity</span>
+
+                <strong id="radarReflectivity">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Storm Cell Density</span>
+
+                <strong id="stormDensity">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- SATELLITE -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>
+            Satellite Data
+        </h2>
+
+        <div class="grid">
+
+            <div>
+
+                <span>Satellite Rain Index</span>
+
+                <strong id="satelliteRain">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Cloud Top Temperature</span>
+
+                <strong id="cloudTopTemp">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- NWP -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>
+            NWP Forecast Data
+        </h2>
+
+        <div class="grid">
+
+            <div>
+
+                <span>NWP Rainfall</span>
+
+                <strong id="nwpRainfall">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>NWP Temperature</span>
+
+                <strong id="nwpTemperature">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>NWP Humidity</span>
+
+                <strong id="nwpHumidity">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>NWP Pressure</span>
+
+                <strong id="nwpPressure">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>NWP Wind Speed</span>
+
+                <strong id="nwpWind">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- RIVER -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>
+            River & Water Level Monitoring
+        </h2>
+
+        <div class="grid">
+
+            <div>
+
+                <span>River Name</span>
+
+                <strong id="riverName">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Station ID</span>
+
+                <strong id="stationId">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Water Level</span>
+
+                <strong id="waterLevel">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Warning Level</span>
+
+                <strong id="warningLevel">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Danger Level</span>
+
+                <strong id="dangerLevel">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Flow Rate</span>
+
+                <strong id="flowRate">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- ICE / GLACIER -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>
+            Ice / Glacier Melting Factor
+        </h2>
+
+        <div class="grid">
+
+            <div>
+
+                <span>Region</span>
+
+                <strong id="iceRegion">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Ice Melt Index</span>
+
+                <strong id="iceMeltIndex">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Melting Rate</span>
+
+                <strong id="meltingRate">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Runoff Contribution</span>
+
+                <strong id="runoffContribution">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- TERRAIN -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>
+            Terrain & Inundation Susceptibility
+        </h2>
+
+        <div class="grid">
+
+            <div>
+
+                <span>Elevation</span>
+
+                <strong id="elevation">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Slope</span>
+
+                <strong id="slope">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Drainage Density</span>
+
+                <strong id="drainageDensity">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Inundation Susceptibility</span>
+
+                <strong id="susceptibility">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- SYSTEM INFORMATION -->
+    <!-- ================================================= -->
+
+    <section class="card">
+
+        <h2>
+            System Information
+        </h2>
+
+        <div class="info">
+
+            <p>
+
+                <strong>Data Sources:</strong>
+
+                Observational Weather, Radar, Satellite,
+                NWP, River, Ice/Glacier and Terrain
+
+            </p>
+
+
+            <p>
+
+                <strong>AI Model:</strong>
+
+                Random Forest Classifier
+
+            </p>
+
+
+            <p>
+
+                <strong>Prediction:</strong>
+
+                Rainfall Risk + Inundation Risk
+
+            </p>
+
+
+            <p>
+
+                <strong>Warning:</strong>
+
+                Automatic risk-based early warning
+
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- FOOTER -->
+    <!-- ================================================= -->
+
+    <footer>
+
+        <p>
+
+            AI/ML-Based Integrated Heavy Rainfall Early Warning
+            and Inundation Prediction System
+
+        </p>
+
+
+        <p id="lastUpdated">
+
+            Last updated: --
+
+        </p>
+
+    </footer>
+
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- LEAFLET MAP JS -->
+<!-- ===================================================== -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- ===================================================== -->
+<!-- JAVASCRIPT -->
+<!-- ===================================================== -->
+
+<script>
+
+let riskMap = null;
+
+let riverMarker = null;
+
+let riskCircle = null;
+
+let dashboardRequestId = 0;
+
+
+function changeLocation() {
+    loadDashboard();
+}
+
+
+/* ===================================================== */
+/* INITIALIZE MAP */
+/* ===================================================== */
+
+function initializeMap() {
+
+    /*
+     * Default location:
+     * Krishna River monitoring station
+     *
+     * These coordinates are also present
+     * in the prototype river dataset.
+     */
+
+    const defaultLatitude = 16.5700;
+
+    const defaultLongitude = 80.3570;
+
+
+    riskMap = L.map("riskMap").setView(
+        [
+            defaultLatitude,
+            defaultLongitude
+        ],
+        10
+    );
+
+
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 19,
+
+            attribution:
+                '&copy; OpenStreetMap contributors'
+        }
+    ).addTo(riskMap);
+
+
+    riverMarker = L.marker(
+        [
+            defaultLatitude,
+            defaultLongitude
+        ]
+    ).addTo(riskMap);
+
+
+    riverMarker.bindPopup(
+        "<b>Krishna River Monitoring Station</b>"
+    );
+
+}
+
+
+/* ===================================================== */
+/* UPDATE MAP */
+/* ===================================================== */
+
+function updateMap(data) {
+
+    if (!riskMap) {
+        return;
+    }
+
+    const river = data.river;
+
+    const riskLevel = data.risk_level;
+
+    const riskScore = Number(data.risk_score || 0);
+
+    const latitude = Number(data.location.latitude);
+
+    const longitude = Number(data.location.longitude);
+
+
+    /* ========================================= */
+    /* UPDATE RIVER MARKER */
+    /* ========================================= */
+
+    if (riverMarker) {
+
+        riverMarker.setLatLng([
+            latitude,
+            longitude
+        ]);
+
+    }
+
+
+    /* ========================================= */
+    /* CENTER MAP */
+    /* ========================================= */
+
+    riskMap.setView(
+        [
+            latitude,
+            longitude
+        ],
+        10
+    );
+
+
+    /* ========================================= */
+    /* MARKER POPUP */
+    /* ========================================= */
+
+    const popupHTML = `
+
+        <div>
+
+            <strong>
+                ${river.river_name}
+            </strong>
+
+            <br><br>
+
+            Station:
+            ${river.station_id}
+
+            <br>
+
+            Water Level:
+            ${river.water_level_m} m
+
+            <br>
+
+            Warning Level:
+            ${river.warning_level_m} m
+
+            <br>
+
+            Danger Level:
+            ${river.danger_level_m} m
+
+            <br>
+
+            Flow:
+            ${river.flow_rate_cumecs} cumecs
+
+            <br><br>
+
+            <strong>
+                Inundation Risk:
+            </strong>
+
+            ${riskLevel}
+
+            <br>
+
+            Risk Score:
+            ${riskScore}%
+
+        </div>
+
+    `;
+
+
+    if (riverMarker) {
+
+        riverMarker.bindPopup(
+            popupHTML
+        );
+
+    }
+
+
+    /* ========================================= */
+    /* RISK COLOR */
+    /* ========================================= */
+
+    let riskColor = "green";
+
+
+    if (riskScore < 25) {
+
+        riskColor = "green";
+
+    }
+    else if (riskScore < 50) {
+
+        riskColor = "yellow";
+
+    }
+    else if (riskScore < 75) {
+
+        riskColor = "orange";
+
+    }
+    else {
+
+        riskColor = "red";
+
+    }
+
+
+    /* ========================================= */
+    /* REMOVE OLD RISK CIRCLE */
+    /* ========================================= */
+
+    if (riskCircle) {
+
+        riskMap.removeLayer(
+            riskCircle
+        );
+
+    }
+
+
+    /* ========================================= */
+    /* CREATE RISK ZONE */
+    /* ========================================= */
+
+    riskCircle = L.circle(
+
+        [
+            latitude,
+            longitude
+        ],
+
+        {
+            radius: 5000,
+
+            color: riskColor,
+
+            fillColor: riskColor,
+
+            fillOpacity: 0.25,
+
+            weight: 3
+        }
+
+    ).addTo(riskMap);
+
+
+    /* ========================================= */
+    /* RISK CIRCLE POPUP */
+    /* ========================================= */
+
+    riskCircle.bindPopup(
+
+        "<b>Inundation Risk Zone</b><br>" +
+
+        "Risk Level: " +
+        riskLevel +
+
+        "<br>" +
+
+        "Risk Score: " +
+        riskScore +
+        "%"
+
+    );
+
+
+    /* ========================================= */
+    /* MAP INFORMATION */
+    /* ========================================= */
+
+    document.getElementById(
+        "mapRiverName"
+    ).textContent =
+        river.river_name;
+
+
+    document.getElementById(
+        "mapStationId"
+    ).textContent =
+        river.station_id;
+
+
+    document.getElementById(
+        "mapWaterLevel"
+    ).textContent =
+        river.water_level_m +
+        " m";
+
+
+    document.getElementById(
+        "mapRiskLevel"
+    ).textContent =
+        riskLevel;
+
+}
+
+
+/* ===================================================== */
+/* LOAD DASHBOARD */
+/* ===================================================== */
+
+async function loadDashboard() {
+
+    const city = document.getElementById("locationSelect").value;
+    const requestId = ++dashboardRequestId;
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/dashboard?city=" + encodeURIComponent(city)
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error ||
+                "Dashboard API error"
+            );
+
+        }
+
+        // Ignore an older response when a user changes cities quickly.
+        if (requestId !== dashboardRequestId) {
+            return;
+        }
+
+        document.getElementById(
+            "selectedLatitude"
+        ).textContent = data.location.latitude;
+
+        document.getElementById(
+            "selectedLongitude"
+        ).textContent = data.location.longitude;
+
+
+        /* ========================================= */
+        /* FINAL RISK */
+        /* ========================================= */
+
+        document.getElementById(
+            "riskLevel"
+        ).textContent =
+            data.risk_level;
+
+
+        document.getElementById(
+            "riskScore"
+        ).textContent =
+            data.risk_score + "%";
+
+
+        document.getElementById(
+            "rainfallScore"
+        ).textContent =
+            data.rainfall_score + "%";
+
+
+        document.getElementById(
+            "riverRisk"
+        ).textContent =
+            data.river_risk + "%";
+
+
+        /* ========================================= */
+        /* WARNING */
+        /* ========================================= */
+
+        document.getElementById(
+            "warning"
+        ).textContent =
+            data.warning;
+
+
+        /* ========================================= */
+        /* ML */
+        /* ========================================= */
+
+        document.getElementById(
+            "mlPrediction"
+        ).textContent =
+            data.ml_prediction;
+
+
+        document.getElementById(
+            "mlConfidence"
+        ).textContent =
+            data.ml_confidence + "%";
+
+
+        /* ========================================= */
+        /* ML PROBABILITIES */
+        /* ========================================= */
+
+        const probabilities =
+            data.ml_probabilities;
+
+
+        let probabilityHTML = "";
+
+
+        for (
+            const label in probabilities
+        ) {
+
+            probabilityHTML +=
+                `<p>
+                    <strong>${label}</strong>:
+                    ${probabilities[label]}%
+                </p>`;
+
+        }
+
+
+        document.getElementById(
+            "probabilities"
+        ).innerHTML =
+            probabilityHTML;
+
+
+        /* ========================================= */
+        /* OBSERVATIONAL */
+        /* ========================================= */
+
+        const obs =
+            data.observational;
+
+
+        document.getElementById(
+            "temperature"
+        ).textContent =
+            obs.temperature_c + " °C";
+
+
+        document.getElementById(
+            "humidity"
+        ).textContent =
+            obs.humidity_pct + " %";
+
+
+        document.getElementById(
+            "pressure"
+        ).textContent =
+            obs.pressure_hpa + " hPa";
+
+
+        document.getElementById(
+            "windSpeed"
+        ).textContent =
+            obs.wind_speed_kmh + " km/h";
+
+
+        document.getElementById(
+            "rainfall"
+        ).textContent =
+            obs.rainfall_1h_mm + " mm";
+
+
+        document.getElementById(
+            "cloudCover"
+        ).textContent =
+            obs.cloud_cover_pct + " %";
+
+
+        /* ========================================= */
+        /* RADAR */
+        /* ========================================= */
+
+        const radar =
+            data.radar;
+
+
+        document.getElementById(
+            "radarReflectivity"
+        ).textContent =
+            radar.radar_reflectivity_dbz +
+            " dBZ";
+
+
+        document.getElementById(
+            "stormDensity"
+        ).textContent =
+            radar.storm_cell_density;
+
+
+        /* ========================================= */
+        /* SATELLITE */
+        /* ========================================= */
+
+        const satellite =
+            data.satellite;
+
+
+        document.getElementById(
+            "satelliteRain"
+        ).textContent =
+            satellite.satellite_rain_index;
+
+
+        document.getElementById(
+            "cloudTopTemp"
+        ).textContent =
+            satellite.cloud_top_temp_c +
+            " °C";
+
+
+        /* ========================================= */
+        /* NWP */
+        /* ========================================= */
+
+        const nwp =
+            data.nwp;
+
+
+        document.getElementById(
+            "nwpRainfall"
+        ).textContent =
+            nwp.nwp_rainfall_mm +
+            " mm";
+
+
+        document.getElementById(
+            "nwpTemperature"
+        ).textContent =
+            nwp.nwp_temperature_c +
+            " °C";
+
+
+        document.getElementById(
+            "nwpHumidity"
+        ).textContent =
+            nwp.nwp_humidity_pct +
+            " %";
+
+
+        document.getElementById(
+            "nwpPressure"
+        ).textContent =
+            nwp.nwp_pressure_hpa +
+            " hPa";
+
+
+        document.getElementById(
+            "nwpWind"
+        ).textContent =
+            nwp.nwp_wind_speed_kmh +
+            " km/h";
+
+
+        /* ========================================= */
+        /* RIVER */
+        /* ========================================= */
+
+        const river =
+            data.river;
+
+
+        document.getElementById(
+            "riverName"
+        ).textContent =
+            river.river_name;
+
+
+        document.getElementById(
+            "stationId"
+        ).textContent =
+            river.station_id;
+
+
+        document.getElementById(
+            "waterLevel"
+        ).textContent =
+            river.water_level_m +
+            " m";
+
+
+        document.getElementById(
+            "warningLevel"
+        ).textContent =
+            river.warning_level_m +
+            " m";
+
+
+        document.getElementById(
+            "dangerLevel"
+        ).textContent =
+            river.danger_level_m +
+            " m";
+
+
+        document.getElementById(
+            "flowRate"
+        ).textContent =
+            river.flow_rate_cumecs +
+            " cumecs";
+
+
+        /* ========================================= */
+        /* ICE / GLACIER */
+        /* ========================================= */
+
+        const ice =
+            data.ice;
+
+
+        document.getElementById(
+            "iceRegion"
+        ).textContent =
+            ice.region;
+
+
+        document.getElementById(
+            "iceMeltIndex"
+        ).textContent =
+            ice.ice_melt_index;
+
+
+        document.getElementById(
+            "meltingRate"
+        ).textContent =
+            ice.melting_rate_mm_day +
+            " mm/day";
+
+
+        document.getElementById(
+            "runoffContribution"
+        ).textContent =
+            ice.runoff_contribution_mm +
+            " mm";
+
+
+        /* ========================================= */
+        /* TERRAIN */
+        /* ========================================= */
+
+        const terrain =
+            data.terrain;
+
+
+        document.getElementById(
+            "elevation"
+        ).textContent =
+            terrain.elevation_m +
+            " m";
+
+
+        document.getElementById(
+            "slope"
+        ).textContent =
+            terrain.slope_deg +
+            "°";
+
+
+        document.getElementById(
+            "drainageDensity"
+        ).textContent =
+            terrain.drainage_density;
+
+
+        document.getElementById(
+            "susceptibility"
+        ).textContent =
+            terrain.inundation_susceptibility;
+
+
+        /* ========================================= */
+        /* UPDATE MAP */
+        /* ========================================= */
+
+        updateMap(data);
+
+
+        /* ========================================= */
+        /* TIME */
+        /* ========================================= */
+
+        document.getElementById(
+            "lastUpdated"
+        ).textContent =
+            "Last updated: " +
+            new Date().toLocaleString();
+
+    }
+
+
+    catch (error) {
+
+        console.error(error);
+
+
+        document.getElementById(
+            "warning"
+        ).textContent =
+            "Unable to load dashboard data: " +
+            error.message;
+
+    }
+
+}
+
+
+/* ===================================================== */
+/* INITIALIZE */
+/* ===================================================== */
+
+initializeMap();
+
+document.getElementById("locationSelect").addEventListener(
+    "change",
+    loadDashboard
+);
+
+
+/* ===================================================== */
+/* INITIAL LOAD */
+/* ===================================================== */
+
+loadDashboard();
+
+
+/* ===================================================== */
+/* AUTO REFRESH */
+/* ===================================================== */
+
+setInterval(
+    loadDashboard,
+    30000
+);
+
+</script>
+
+
+</body>
+
+</html>

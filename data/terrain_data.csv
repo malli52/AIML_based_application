@@ -1,0 +1,6 @@
+location_id,latitude,longitude,elevation_m,slope_deg,land_cover,drainage_density,inundation_susceptibility
+LOC001,16.5700,80.3570,18,1.8,Urban,0.72,0.82
+LOC002,16.5750,80.3600,21,2.4,Agriculture,0.61,0.70
+LOC003,16.5800,80.3650,27,3.1,Residential,0.55,0.63
+LOC004,16.5850,80.3700,35,4.5,Open_Land,0.42,0.48
+LOC005,16.5900,80.3750,48,6.2,Vegetation,0.31,0.32
